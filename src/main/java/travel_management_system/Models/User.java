@@ -1,9 +1,11 @@
 package travel_management_system.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.sql.Date;
 import java.util.List;
 
@@ -29,7 +31,11 @@ public class User {
     @Column
     public Date startDate;
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonIgnore
     public List<LeaveRequest> leaveRequests;
+    @OneToOne(mappedBy = "user")
+    @JsonIgnore
+    FlightAndLeaveBalance flightAndLeaveBalance;
 
     public User(Long id, String name, String email, String password, String role, Date startDate) {
         this.id = id;
