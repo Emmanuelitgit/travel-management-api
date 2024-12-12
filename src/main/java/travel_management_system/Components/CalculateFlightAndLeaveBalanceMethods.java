@@ -3,10 +3,8 @@ package travel_management_system.Components;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import travel_management_system.Models.Eligibility;
 import travel_management_system.Models.FlightAndLeaveBalance;
 import travel_management_system.Models.LeaveRequest;
-import travel_management_system.Models.User;
 import travel_management_system.Repositories.EligibilityRepository;
 import travel_management_system.Repositories.FlightAndLeaveBalanceRepository;
 import travel_management_system.Repositories.LeaveRequestRepository;
@@ -15,18 +13,17 @@ import travel_management_system.Repositories.UserRepository;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.Temporal;
 
 @Slf4j
 @Component
-public class CalculateFlighAndLeaveBalanceMethods {
+public class CalculateFlightAndLeaveBalanceMethods {
     private final UserRepository userRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final EligibilityRepository eligibilityRepository;
     private final FlightAndLeaveBalanceRepository flightAndLeaveBalanceRepository;
 
     @Autowired
-    public CalculateFlighAndLeaveBalanceMethods(EligibilityRepository eligibilityRepository, UserRepository userRepository, LeaveRequestRepository leaveRequestRepository, FlightAndLeaveBalanceRepository flightAndLeaveBalanceRepository) {
+    public CalculateFlightAndLeaveBalanceMethods(EligibilityRepository eligibilityRepository, UserRepository userRepository, LeaveRequestRepository leaveRequestRepository, FlightAndLeaveBalanceRepository flightAndLeaveBalanceRepository) {
         this.eligibilityRepository = eligibilityRepository;
         this.userRepository = userRepository;
         this.leaveRequestRepository = leaveRequestRepository;
