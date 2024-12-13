@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import travel_management_system.Components.CalculateFlightAndLeaveBalanceMethods;
+import travel_management_system.Components.MailSenderComponent;
 import travel_management_system.Exception.NotFoundException;
 import travel_management_system.Models.LeaveRequest;
 import travel_management_system.Models.User;
@@ -19,12 +20,14 @@ public class LeaveRequestService {
     private final LeaveRequestRepository leaveRequestRepository;
     private final UserRepository userRepository;
     private final CalculateFlightAndLeaveBalanceMethods calculateFlightAndLeaveBalanceMethods;
+    private final MailSenderComponent mailSenderComponent;
 
     @Autowired
-    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserRepository userRepository, CalculateFlightAndLeaveBalanceMethods calculateFlightAndLeaveBalanceMethods) {
+    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserRepository userRepository, CalculateFlightAndLeaveBalanceMethods calculateFlightAndLeaveBalanceMethods, MailSenderComponent mailSenderComponent) {
         this.leaveRequestRepository = leaveRequestRepository;
         this.userRepository = userRepository;
         this.calculateFlightAndLeaveBalanceMethods = calculateFlightAndLeaveBalanceMethods;
+        this.mailSenderComponent = mailSenderComponent;
     }
 
     // a method for adding leave request to the db
@@ -39,6 +42,7 @@ public class LeaveRequestService {
             leaveRequest.setLeave_days(leave_days);
             user.getLeaveRequests().add(leaveRequest);
             leaveRequestRepository.save(leaveRequest);
+            mailSenderComponent.sendLeaveRequestMail(user.getEmail(), user.getName());
             return leaveRequest;
         }
         else {

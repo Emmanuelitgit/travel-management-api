@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import travel_management_system.DTO.UserDTO;
 import travel_management_system.Models.User;
 import travel_management_system.Response.ResponseHandler;
 import travel_management_system.Services.UserService;
@@ -27,7 +28,7 @@ public class UserController {
 
     // endpoint for creating new user
     @PostMapping("/create-user")
-    public User createUser(@RequestBody User user) {
+    public UserDTO createUser(@RequestBody User user) {
         log.info("in creating user controller==========");
         return userService.createUser(user);
     }
@@ -36,7 +37,7 @@ public class UserController {
     @GetMapping("/users")
     public ResponseEntity<Object> getUsers(){
         log.info("in fetching users controller========");
-        List<User> users =  userService.getUsers();
+        List<UserDTO> users =  userService.getUsers();
         return ResponseHandler.responseBuilder("users details", users, HttpStatus.OK);
     }
 }

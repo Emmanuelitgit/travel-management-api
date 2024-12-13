@@ -45,8 +45,9 @@ public class JWTAccess {
         return claims.getSubject();
     }
 
-    public boolean isTokenValid(){
-        return
+    public boolean isTokenValid(String token){
+        Claims claims = getClaims(token);
+        return Date.from(Instant.now()).before(claims.getExpiration());
     }
 
     private SecretKey secretKey(){
