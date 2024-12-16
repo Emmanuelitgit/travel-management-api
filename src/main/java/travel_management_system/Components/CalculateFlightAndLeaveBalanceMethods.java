@@ -2,7 +2,11 @@ package travel_management_system.Components;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import travel_management_system.Exception.NotFoundException;
 import travel_management_system.Models.FlightAndLeaveBalance;
 import travel_management_system.Models.LeaveRequest;
 import travel_management_system.Repositories.EligibilityRepository;
@@ -13,9 +17,12 @@ import travel_management_system.Repositories.UserRepository;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
+import java.util.Optional;
 
 @Slf4j
 @Component
+@EnableScheduling
 public class CalculateFlightAndLeaveBalanceMethods {
     private final UserRepository userRepository;
     private final LeaveRequestRepository leaveRequestRepository;
@@ -30,53 +37,85 @@ public class CalculateFlightAndLeaveBalanceMethods {
         this.flightAndLeaveBalanceRepository = flightAndLeaveBalanceRepository;
     }
 
-    /**
-     * @author -> Emmanuel Yidana
-     * @param -> leave_request_id
-     * @return -> flightBalance
-     * @description -> a method to calculate leave balance
-     * @date -> 08-12-2024
-     */
-    public double calculateLeaveBalance(Long leave_request_id){
-        LeaveRequest leaveRequest = leaveRequestRepository.findById(leave_request_id).orElse(null);
-        FlightAndLeaveBalance userBalance = flightAndLeaveBalanceRepository.findById(leaveRequest.getUser().getId()).orElse(null);
 
-        double userAccumulatedLeaveDays = ((double) userBalance.getAccumulated_working_days() /90)*14;
-        double leaveBalance = userAccumulatedLeaveDays - leaveRequest.getLeave_days();
-        userBalance.setLeave_balance((int)leaveBalance);
-        flightAndLeaveBalanceRepository.save(userBalance);
-        log.info("leave days requesting: ========{}",String.valueOf(leaveRequest.getLeave_days()));
-        log.info("user accumulated leave days: ========{}",String.valueOf(userAccumulatedLeaveDays));
-        log.info("leave balance: ========{}", String.valueOf(leaveBalance));
-        return leaveBalance;
-    }
 
-    /**
-     * @author -> Emmanuel Yidana
-     * @param -> leave_request_id
-     * @return -> flightBalance
-     * @description -> a method to calculate flight balance
-     * @date -> 08-12-2024
-     */
-    public double  calculateFlightBalance(Long leave_request_id){
-        LeaveRequest leaveRequest = leaveRequestRepository.findById(leave_request_id).orElse(null);
-        FlightAndLeaveBalance userBalance = flightAndLeaveBalanceRepository.findById(leaveRequest.getUser().getId()).orElse(null);
+    public FlightAndLeaveBalance calculateFlightAndLeaveBalance(Long leaveRequestId){
 
-        double userAccumulatedLeaveDays = ((double) userBalance.getAccumulated_working_days() /90)*14;
+        FlightAndLeaveBalance leaveBalanceUsingExistingLeaveRequestData = calculateUserLeaveAndFlightBalanceWithExistingRequestData(leaveRequestId);
+        if (leaveBalanceUsingExistingLeaveRequestData == null){
+            LeaveRequest leaveRequest = leaveRequestRepository.findById(leaveRequestId).orElse(null);
+            if (leaveRequest == null){
+                throw new NotFoundException("leave request not found");
+            }
+
+            FlightAndLeaveBalance userBalance = flightAndLeaveBalanceRepository
+                    .findFlightAndLeaveBalanceByUser_Id(leaveRequest.getUser().getId()).orElse(null);
+            log.info("user balance:{}", userBalance);
+            if (userBalance == null){
+                throw new NotFoundException("user balance not found");
+            }
+
+            double userAccumulatedLeaveDays = ((double) userBalance.getAccumulated_working_days() /90)*14;
             double userAccumulatedFlight = userAccumulatedLeaveDays/14;
+            double leaveBalance = userAccumulatedLeaveDays - leaveRequest.getLeave_days();
+            double roundedLeaveBalance = Math.round(leaveBalance * 10.0)/10.0;
             double flightBalance = userAccumulatedFlight-1.0;
-            userBalance.setFlight_balance((int)flightBalance);
+            double roundedFlightBalance = Math.round(flightBalance * 10.0)/10.0;
+
+            if (flightBalance < 0 || leaveBalance < 0){
+                throw new NotFoundException("Insufficient balance to complete the operation");
+            }
+            userBalance.setLeave_balance(roundedLeaveBalance);
+            userBalance.setFlight_balance(roundedFlightBalance);
             log.info("flight balance: ========={}",String.valueOf(flightBalance));
             flightAndLeaveBalanceRepository.save(userBalance);
-            return flightBalance;
+            return userBalance;
+        }
+
+        return leaveBalanceUsingExistingLeaveRequestData;
     }
 
-    /**
-     * @param departure
-     * @param arrival
-     * @return number of leave days requesting for
-     * @desecription -> a method to calculate a number a leave days requesting for
-     */
+
+    public FlightAndLeaveBalance calculateUserLeaveAndFlightBalanceWithExistingRequestData(Long leaveRequestId){
+        LeaveRequest leaveRequest = leaveRequestRepository.findById(leaveRequestId).orElse(null);
+        Optional<Date> userExistingRequestLatestArrivalDate = leaveRequestRepository
+                .getUserLatestArrivalByUserId(leaveRequest.getUser().getId());
+        if (userExistingRequestLatestArrivalDate.isPresent()){
+            LocalDate userArrival = userExistingRequestLatestArrivalDate.get().toLocalDate();
+            long userAccumulatedWorkingDays = ChronoUnit.DAYS.between(userArrival, LocalDate.now());
+            log.info("userAccumulatedWorkingDays:{}", userAccumulatedWorkingDays);
+            double accumulatedLeaveBalance = ((double) userAccumulatedWorkingDays /90)*14;
+            double accumulatedFlightBalance = accumulatedLeaveBalance/14;
+            log.info("accumulate flight:{}", accumulatedFlightBalance);
+
+            FlightAndLeaveBalance userBalance = flightAndLeaveBalanceRepository
+                    .findFlightAndLeaveBalanceByUser_Id(leaveRequest.getUser().getId()).orElse(null);
+            double leaveBalance = (userBalance.getLeave_balance() +  accumulatedLeaveBalance) - leaveRequest.getLeave_days();
+            double flightBalance = (userBalance.getFlight_balance() + accumulatedFlightBalance) - 1.0;
+            double roundedLeaveBalanceToOneDecimalPlace = Math.round(leaveBalance * 10.0)/10.0;
+            double roundedFlightBalanceToOneDecimalPlace = Math.round(flightBalance * 10.0)/10.0;
+
+            if (roundedFlightBalanceToOneDecimalPlace < 0 || roundedLeaveBalanceToOneDecimalPlace < 0){
+                throw new NotFoundException("Insufficient balance to complete the operation");
+            }
+
+            userBalance.setLeave_balance(roundedLeaveBalanceToOneDecimalPlace);
+            userBalance.setFlight_balance(roundedFlightBalanceToOneDecimalPlace);
+            userBalance.setAccumulated_working_days(userBalance.getAccumulated_working_days() + userAccumulatedWorkingDays);
+            flightAndLeaveBalanceRepository.save(userBalance);
+            return userBalance;
+        }
+        return null;
+    }
+
+//
+//    @Async
+//    @Scheduled(cron = "*/1 * * * * *")
+//    public  void calculateAccumulatedWorkingDays(){
+//        flightAndLeaveBalanceRepository.calculateAccumulatedLeaveDays();
+//    }
+
+
     public long calculateLeaveRequestingDays(Date departure, Date arrival) {
         LocalDate departureLocalDate = departure.toLocalDate();
         LocalDate arrivalLocalDate = arrival.toLocalDate();

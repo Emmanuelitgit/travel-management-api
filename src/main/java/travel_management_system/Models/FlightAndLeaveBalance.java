@@ -17,9 +17,9 @@ public class FlightAndLeaveBalance {
     @Column
     public Long id;
     @Column
-    public int flight_balance;
+    public double flight_balance;
     @Column
-    public int leave_balance;
+    public double leave_balance;
     @Column
     public long accumulated_working_days = 0;
     @JoinColumn(name = "user_id")

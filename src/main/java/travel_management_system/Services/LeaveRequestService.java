@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import travel_management_system.Components.CalculateFlightAndLeaveBalanceMethods;
 import travel_management_system.Components.MailSenderComponent;
 import travel_management_system.Exception.NotFoundException;
+import travel_management_system.Models.FlightAndLeaveBalance;
 import travel_management_system.Models.LeaveRequest;
 import travel_management_system.Models.User;
 import travel_management_system.Repositories.LeaveRequestRepository;
@@ -60,13 +61,14 @@ public class LeaveRequestService {
     }
 
     // a method for leave request approval
-    public LeaveRequest approveLeaveRequest(Long leave_request_id){
-        double leaveBalance = calculateFlightAndLeaveBalanceMethods.calculateLeaveBalance(leave_request_id);
-        double flightBalance = calculateFlightAndLeaveBalanceMethods.calculateFlightBalance(leave_request_id);
-//        log.info("flight:========={} Leave: {}", flightBalance, leaveBalnce);
-        LeaveRequest request = leaveRequestRepository.findById(leave_request_id).orElse(null);
-//        request.setStatus(true);
-//        leaveRequestRepository.save(request);
+    public LeaveRequest approveLeaveRequest(Long leaveRequestId){
+        FlightAndLeaveBalance leaveBalance = calculateFlightAndLeaveBalanceMethods.calculateFlightAndLeaveBalance(leaveRequestId);
+        LeaveRequest request = leaveRequestRepository.findById(leaveRequestId).orElse(null);
+        if (request == null){
+            throw new NotFoundException("leave request not found");
+        }
+        request.setStatus(true);
+        leaveRequestRepository.save(request);
         return request;
     }
 }

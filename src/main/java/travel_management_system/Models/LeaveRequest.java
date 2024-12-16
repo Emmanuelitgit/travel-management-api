@@ -19,7 +19,7 @@ public class LeaveRequest {
     @Column
     public Date arrival_date;
     @Column
-    public long leave_days = 0;
+    public double leave_days;
     @Column
     public boolean status;
 
