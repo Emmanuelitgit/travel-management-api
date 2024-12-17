@@ -11,4 +11,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 
     @Query("SELECT MAX(request.arrival_date) FROM LeaveRequest request WHERE request.user.id = :userId AND request.status = true")
     Optional<Date> getUserLatestArrivalByUserId(Long userId);
+
+    @Query("SELECT request FROM LeaveRequest request  WHERE request.user.id = :userId")
+    Optional<LeaveRequest> findLeaveRequestByUserId(Long userId);
 }

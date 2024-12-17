@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface FlightAndLeaveBalanceRepository extends JpaRepository<travel_management_system.Models.FlightAndLeaveBalance, Long> {
 
     @Query("SELECT flb FROM FlightAndLeaveBalance flb WHERE flb.user.id = ?1")
-    Optional<FlightAndLeaveBalance> findFlightAndLeaveBalanceByUser_Id(Long id);
+    Optional<FlightAndLeaveBalance> findFlightAndLeaveBalanceByUserId(Long id);
 
     @Modifying
     @Transactional

@@ -49,7 +49,7 @@ public class CalculateFlightAndLeaveBalanceMethods {
             }
 
             FlightAndLeaveBalance userBalance = flightAndLeaveBalanceRepository
-                    .findFlightAndLeaveBalanceByUser_Id(leaveRequest.getUser().getId()).orElse(null);
+                    .findFlightAndLeaveBalanceByUserId(leaveRequest.getUser().getId()).orElse(null);
             log.info("user balance:{}", userBalance);
             if (userBalance == null){
                 throw new NotFoundException("user balance not found");
@@ -62,9 +62,9 @@ public class CalculateFlightAndLeaveBalanceMethods {
             double flightBalance = userAccumulatedFlight-1.0;
             double roundedFlightBalance = Math.round(flightBalance * 10.0)/10.0;
 
-            if (flightBalance < 0 || leaveBalance < 0){
-                throw new NotFoundException("Insufficient balance to complete the operation");
-            }
+//            if (flightBalance < 0 || leaveBalance < 0){
+//                throw new NotFoundException("Insufficient balance to complete the operation");
+//            }
             userBalance.setLeave_balance(roundedLeaveBalance);
             userBalance.setFlight_balance(roundedFlightBalance);
             log.info("flight balance: ========={}",String.valueOf(flightBalance));
@@ -89,15 +89,15 @@ public class CalculateFlightAndLeaveBalanceMethods {
             log.info("accumulate flight:{}", accumulatedFlightBalance);
 
             FlightAndLeaveBalance userBalance = flightAndLeaveBalanceRepository
-                    .findFlightAndLeaveBalanceByUser_Id(leaveRequest.getUser().getId()).orElse(null);
+                    .findFlightAndLeaveBalanceByUserId(leaveRequest.getUser().getId()).orElse(null);
             double leaveBalance = (userBalance.getLeave_balance() +  accumulatedLeaveBalance) - leaveRequest.getLeave_days();
             double flightBalance = (userBalance.getFlight_balance() + accumulatedFlightBalance) - 1.0;
             double roundedLeaveBalanceToOneDecimalPlace = Math.round(leaveBalance * 10.0)/10.0;
             double roundedFlightBalanceToOneDecimalPlace = Math.round(flightBalance * 10.0)/10.0;
 
-            if (roundedFlightBalanceToOneDecimalPlace < 0 || roundedLeaveBalanceToOneDecimalPlace < 0){
-                throw new NotFoundException("Insufficient balance to complete the operation");
-            }
+//            if (roundedFlightBalanceToOneDecimalPlace < 0 || roundedLeaveBalanceToOneDecimalPlace < 0){
+//                throw new NotFoundException("Insufficient balance to complete the operation");
+//            }
 
             userBalance.setLeave_balance(roundedLeaveBalanceToOneDecimalPlace);
             userBalance.setFlight_balance(roundedFlightBalanceToOneDecimalPlace);

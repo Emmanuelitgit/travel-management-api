@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import travel_management_system.Components.CalculateFlightAndLeaveBalanceMethods;
 import travel_management_system.Components.MailSenderComponent;
+import travel_management_system.DTO.LeaveRequestDTO;
+import travel_management_system.DTOMappers.LeaveRequestMapper;
 import travel_management_system.Exception.NotFoundException;
 import travel_management_system.Models.FlightAndLeaveBalance;
 import travel_management_system.Models.LeaveRequest;
@@ -22,17 +24,19 @@ public class LeaveRequestService {
     private final UserRepository userRepository;
     private final CalculateFlightAndLeaveBalanceMethods calculateFlightAndLeaveBalanceMethods;
     private final MailSenderComponent mailSenderComponent;
+    private final LeaveRequestMapper leaveRequestMapper;
 
     @Autowired
-    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserRepository userRepository, CalculateFlightAndLeaveBalanceMethods calculateFlightAndLeaveBalanceMethods, MailSenderComponent mailSenderComponent) {
+    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserRepository userRepository, CalculateFlightAndLeaveBalanceMethods calculateFlightAndLeaveBalanceMethods, MailSenderComponent mailSenderComponent, LeaveRequestMapper leaveRequestMapper) {
         this.leaveRequestRepository = leaveRequestRepository;
         this.userRepository = userRepository;
         this.calculateFlightAndLeaveBalanceMethods = calculateFlightAndLeaveBalanceMethods;
         this.mailSenderComponent = mailSenderComponent;
+        this.leaveRequestMapper = leaveRequestMapper;
     }
 
     // a method for adding leave request to the db
-    public LeaveRequest createLeaveRequest(LeaveRequest leaveRequest, Long user_id){
+    public LeaveRequestDTO createLeaveRequest(LeaveRequest leaveRequest, Long user_id){
         Optional<User> userOptional = userRepository.findById(user_id);
         if (userOptional.isPresent()){
             Long leave_days = calculateFlightAndLeaveBalanceMethods.calculateLeaveRequestingDays(
@@ -44,7 +48,7 @@ public class LeaveRequestService {
             user.getLeaveRequests().add(leaveRequest);
             leaveRequestRepository.save(leaveRequest);
             mailSenderComponent.sendLeaveRequestMail(user.getEmail(), user.getName());
-            return leaveRequest;
+            return LeaveRequestMapper.toDTO(leaveRequest);
         }
         else {
             throw new NullPointerException();
@@ -52,16 +56,35 @@ public class LeaveRequestService {
     }
 
     // get all leave requests
-    public List<LeaveRequest> getLeaveRequestList(){
+    public List<LeaveRequestDTO> getLeaveRequestList(){
         List<LeaveRequest> leaveRequestList = leaveRequestRepository.findAll();
         if (leaveRequestList.isEmpty()){
             throw new NotFoundException("No leave request data found");
         }
-        return leaveRequestList;
+        return leaveRequestMapper.leaveRequestDTOList(leaveRequestList);
+    }
+
+    // a method to get a leave request by id
+    public LeaveRequestDTO getLeaveRequest(Long leaveRequestId){
+        LeaveRequest leaveRequest = leaveRequestRepository.findById(leaveRequestId).orElse(null);
+        if (leaveRequest == null){
+            throw new NotFoundException("No leave request information found");
+        }
+        return LeaveRequestMapper.toDTO(leaveRequest);
+    }
+
+    // a method to get leave request by user id
+    public LeaveRequestDTO getLeaveRequestByUserId(Long userId){
+        Optional<LeaveRequest > leaveRequest = leaveRequestRepository.findLeaveRequestByUserId(userId);
+        if (leaveRequest.isEmpty()){
+            throw new NotFoundException("user data not found");
+        }
+        LeaveRequest leaveRequestData = leaveRequest.get();
+        return LeaveRequestMapper.toDTO(leaveRequestData);
     }
 
     // a method for leave request approval
-    public LeaveRequest approveLeaveRequest(Long leaveRequestId){
+    public LeaveRequestDTO approveLeaveRequest(Long leaveRequestId){
         FlightAndLeaveBalance leaveBalance = calculateFlightAndLeaveBalanceMethods.calculateFlightAndLeaveBalance(leaveRequestId);
         LeaveRequest request = leaveRequestRepository.findById(leaveRequestId).orElse(null);
         if (request == null){
@@ -69,6 +92,6 @@ public class LeaveRequestService {
         }
         request.setStatus(true);
         leaveRequestRepository.save(request);
-        return request;
+        return LeaveRequestMapper.toDTO(request);
     }
 }

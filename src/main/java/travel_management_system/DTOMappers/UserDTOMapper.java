@@ -1,6 +1,7 @@
-package travel_management_system.DTO;
+package travel_management_system.DTOMappers;
 
 import org.springframework.stereotype.Component;
+import travel_management_system.DTO.UserDTO;
 import travel_management_system.Models.User;
 
 import java.util.List;

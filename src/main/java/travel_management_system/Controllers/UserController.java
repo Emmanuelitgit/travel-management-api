@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import travel_management_system.DTO.UserDTO;
 import travel_management_system.Models.User;
 import travel_management_system.Response.ResponseHandler;
@@ -17,6 +14,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
+@RequestMapping("/api")
 public class UserController {
 
     private final UserService userService;
@@ -28,9 +26,10 @@ public class UserController {
 
     // endpoint for creating new user
     @PostMapping("/create-user")
-    public UserDTO createUser(@RequestBody User user) {
+    public ResponseEntity<Object> createUser(@RequestBody User user) {
         log.info("in creating user controller==========");
-        return userService.createUser(user);
+        UserDTO userDTO = userService.createUser(user);
+        return ResponseHandler.responseBuilder("user created successfulyy", userDTO, HttpStatus.CREATED);
     }
 
     // endpoint for fetching users from db
@@ -39,5 +38,11 @@ public class UserController {
         log.info("in fetching users controller========");
         List<UserDTO> users =  userService.getUsers();
         return ResponseHandler.responseBuilder("users details", users, HttpStatus.OK);
+    }
+
+    // an endpoint to get user by id
+    public ResponseEntity<Object> getUserById(@PathVariable Long userId){
+        UserDTO user = userService.getUserById(userId);
+        return ResponseHandler.responseBuilder("user details", user, HttpStatus.OK);
     }
 }
