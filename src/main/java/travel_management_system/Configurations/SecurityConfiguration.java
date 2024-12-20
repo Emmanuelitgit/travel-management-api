@@ -1,5 +1,7 @@
 package travel_management_system.Configurations;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +36,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity, HttpServletRequest servletRequest, HttpServletResponse httpServletResponse) throws Exception {
 
         return httpSecurity.authorizeHttpRequests(registry->{
             registry
@@ -49,6 +51,11 @@ public class SecurityConfiguration {
                             .successHandler(new SuccessRedirect());
                 })
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(httpSecuritySessionManagementConfigurer -> {
+                    httpSecuritySessionManagementConfigurer
+                            .maximumSessions(1)
+                            .maxSessionsPreventsLogin(true);
+                })
                 .build();
     }
 

@@ -2,6 +2,10 @@ package travel_management_system.Services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import travel_management_system.DTO.UserDTO;
@@ -18,11 +22,13 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserDTOMapper userDTOMapper;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, UserDTOMapper userDTOMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userDTOMapper = userDTOMapper;
     }
 
     // a method to create new user
@@ -39,6 +45,14 @@ public class UserService {
             throw new NotFoundException("No user data found");
         }
         return UserDTOMapper.userDTOList(users);
+    }
+
+    // get all users : integrating pagination feature
+    public List<UserDTO> getUsersByPage(int page, int size, String id, boolean ascending){
+        Sort sort = ascending?Sort.by(id).ascending() : Sort.by(id).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<User> users = userRepository.findAll(pageable);
+        return UserDTOMapper.userPaginationDTOList(users);
     }
 
     // a method to get user by id

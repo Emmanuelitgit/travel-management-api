@@ -62,9 +62,9 @@ public class CalculateFlightAndLeaveBalanceMethods {
             double flightBalance = userAccumulatedFlight-1.0;
             double roundedFlightBalance = Math.round(flightBalance * 10.0)/10.0;
 
-//            if (flightBalance < 0 || leaveBalance < 0){
-//                throw new NotFoundException("Insufficient balance to complete the operation");
-//            }
+            if (flightBalance < 0 || leaveBalance < 0){
+                throw new NotFoundException("Insufficient balance to complete the operation");
+            }
             userBalance.setLeave_balance(roundedLeaveBalance);
             userBalance.setFlight_balance(roundedFlightBalance);
             log.info("flight balance: ========={}",String.valueOf(flightBalance));
@@ -95,9 +95,9 @@ public class CalculateFlightAndLeaveBalanceMethods {
             double roundedLeaveBalanceToOneDecimalPlace = Math.round(leaveBalance * 10.0)/10.0;
             double roundedFlightBalanceToOneDecimalPlace = Math.round(flightBalance * 10.0)/10.0;
 
-//            if (roundedFlightBalanceToOneDecimalPlace < 0 || roundedLeaveBalanceToOneDecimalPlace < 0){
-//                throw new NotFoundException("Insufficient balance to complete the operation");
-//            }
+            if (roundedFlightBalanceToOneDecimalPlace < 0 || roundedLeaveBalanceToOneDecimalPlace < 0){
+                throw new NotFoundException("Insufficient balance to complete the operation");
+            }
 
             userBalance.setLeave_balance(roundedLeaveBalanceToOneDecimalPlace);
             userBalance.setFlight_balance(roundedFlightBalanceToOneDecimalPlace);
@@ -114,7 +114,6 @@ public class CalculateFlightAndLeaveBalanceMethods {
 //    public  void calculateAccumulatedWorkingDays(){
 //        flightAndLeaveBalanceRepository.calculateAccumulatedLeaveDays();
 //    }
-
 
     public long calculateLeaveRequestingDays(Date departure, Date arrival) {
         LocalDate departureLocalDate = departure.toLocalDate();

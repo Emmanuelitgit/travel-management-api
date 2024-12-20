@@ -1,5 +1,6 @@
 package travel_management_system.DTOMappers;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import travel_management_system.DTO.UserDTO;
 import travel_management_system.Models.User;
@@ -21,6 +22,13 @@ public class UserDTOMapper {
     }
 
     public static List<UserDTO> userDTOList(List<User> users){
+        return users.stream()
+                .map(UserDTOMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    // user DTO with pagination integration
+    public static List<UserDTO> userPaginationDTOList(Page<User> users){
         return users.stream()
                 .map(UserDTOMapper::toDTO)
                 .collect(Collectors.toList());
