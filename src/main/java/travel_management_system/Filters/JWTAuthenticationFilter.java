@@ -2,6 +2,7 @@ package travel_management_system.Filters;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ import travel_management_system.Components.JWTAccess;
 import travel_management_system.Components.UserDetailService;
 
 import java.io.IOException;
+import java.net.CookieManager;
+import java.util.Arrays;
 
 @Configuration
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
@@ -37,6 +40,17 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request,response);
             return;
         }
+
+//        String token1 = null;
+//        Cookie[] cookies = request.getCookies();
+//
+//        for (Cookie cookie:cookies){
+//            if (cookie.getName().equals("token")){
+//                token1 = cookie.getValue();
+//            }
+//        }
+//        logger.info(token1);
+
         String token = authHeader.substring(7);
         String username = jwtAccess.extractUsername(token);
         if (username !=null && jwtAccess.isTokenValid(token)){

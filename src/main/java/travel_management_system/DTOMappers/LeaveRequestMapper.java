@@ -28,7 +28,7 @@ public class LeaveRequestMapper {
                 leaveRequest.getDeparture_date(),
                 leaveRequest.getArrival_date(),
                 leaveRequest.getLeave_days(),
-                leaveRequest.isStatus(),
+                leaveRequest.getStatus(),
                 user
         );
     }

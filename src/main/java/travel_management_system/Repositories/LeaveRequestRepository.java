@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long> {
 
-    @Query("SELECT MAX(request.arrival_date) FROM LeaveRequest request WHERE request.user.id = :userId AND request.status = true")
+    @Query("SELECT MAX(request.arrival_date) FROM LeaveRequest request WHERE request.user.id = :userId AND request.status = 'Approve'")
     Optional<Date> getUserLatestArrivalByUserId(Long userId);
 
     @Query("SELECT request FROM LeaveRequest request  WHERE request.user.id = :userId")

@@ -1,4 +1,4 @@
-package travel_management_system.Controllers.RestApis;
+package travel_management_system.Controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import travel_management_system.Components.CalculateFlightAndLeaveBalanceMethods;
+import travel_management_system.Configurations.kafka.dto.TMSUpdatePayload;
 import travel_management_system.DTO.LeaveRequestDTO;
 import travel_management_system.Models.LeaveRequest;
 import travel_management_system.Response.ResponseHandler;
@@ -61,8 +62,9 @@ public class LeaveRequestController {
 
     // endpoint for approving leave request
     @GetMapping("/approve/{leave_request_id}")
-    public ResponseEntity<Object> approveLeaveRequest(@PathVariable Long leave_request_id){
-        LeaveRequestDTO leaveRequest = leaveRequestService.approveLeaveRequest(leave_request_id);
+    public ResponseEntity<Object> approveLeaveRequest(@PathVariable Long leave_request_id, @RequestBody TMSUpdatePayload tmsUpdatePayload){
+        tmsUpdatePayload.setLeaveId(leave_request_id);
+        LeaveRequestDTO leaveRequest = leaveRequestService.approveLeaveRequest(tmsUpdatePayload);
         return ResponseHandler.responseBuilder("leave request approved successfully", leaveRequest, HttpStatus.OK);
     }
 }

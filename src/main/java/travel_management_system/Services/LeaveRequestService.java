@@ -2,9 +2,12 @@ package travel_management_system.Services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import travel_management_system.Components.CalculateFlightAndLeaveBalanceMethods;
 import travel_management_system.Components.MailSenderComponent;
+import travel_management_system.Configurations.kafka.dto.TMSUpdatePayload;
 import travel_management_system.DTO.LeaveRequestDTO;
 import travel_management_system.DTOMappers.LeaveRequestMapper;
 import travel_management_system.Exception.NotFoundException;
@@ -25,14 +28,16 @@ public class LeaveRequestService {
     private final CalculateFlightAndLeaveBalanceMethods calculateFlightAndLeaveBalanceMethods;
     private final MailSenderComponent mailSenderComponent;
     private final LeaveRequestMapper leaveRequestMapper;
+    private final KafkaTemplate<String, TMSUpdatePayload> kafkaTemplate;
 
     @Autowired
-    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserRepository userRepository, CalculateFlightAndLeaveBalanceMethods calculateFlightAndLeaveBalanceMethods, MailSenderComponent mailSenderComponent, LeaveRequestMapper leaveRequestMapper) {
+    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserRepository userRepository, CalculateFlightAndLeaveBalanceMethods calculateFlightAndLeaveBalanceMethods, MailSenderComponent mailSenderComponent, LeaveRequestMapper leaveRequestMapper, KafkaTemplate<String, TMSUpdatePayload> kafkaTemplate) {
         this.leaveRequestRepository = leaveRequestRepository;
         this.userRepository = userRepository;
         this.calculateFlightAndLeaveBalanceMethods = calculateFlightAndLeaveBalanceMethods;
         this.mailSenderComponent = mailSenderComponent;
         this.leaveRequestMapper = leaveRequestMapper;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     // a method for adding leave request to the db
@@ -46,8 +51,20 @@ public class LeaveRequestService {
             leaveRequest.setUser(user);
             leaveRequest.setLeave_days(leave_days);
             user.getLeaveRequests().add(leaveRequest);
-            leaveRequestRepository.save(leaveRequest);
+            LeaveRequest res = leaveRequestRepository.save(leaveRequest);
             mailSenderComponent.sendLeaveRequestMail(user.getEmail(), user.getName());
+
+            TMSUpdatePayload tmsUpdatePayload = TMSUpdatePayload
+                    .builder()
+                    .leaveId(res.getId())
+                    .requestedBy(res.getUser().getId())
+                    .requestType("leave")
+                    .ApplicationType("TMS")
+                    .approveleaverequest(null)
+                    .build();
+
+            kafkaTemplate.send("start-process-update", tmsUpdatePayload);
+
             return LeaveRequestMapper.toDTO(leaveRequest);
         }
         else {
@@ -84,13 +101,14 @@ public class LeaveRequestService {
     }
 
     // a method for leave request approval
-    public LeaveRequestDTO approveLeaveRequest(Long leaveRequestId){
-        FlightAndLeaveBalance leaveBalance = calculateFlightAndLeaveBalanceMethods.calculateFlightAndLeaveBalance(leaveRequestId);
-        LeaveRequest request = leaveRequestRepository.findById(leaveRequestId).orElse(null);
+    @KafkaListener(topics = "tms-flowable-update", containerFactory = "KafkaListenerContainerFactory", groupId = "tms-group")
+    public LeaveRequestDTO approveLeaveRequest(TMSUpdatePayload tmsUpdatePayload){
+        FlightAndLeaveBalance leaveBalance = calculateFlightAndLeaveBalanceMethods.calculateFlightAndLeaveBalance(tmsUpdatePayload.getLeaveId());
+        LeaveRequest request = leaveRequestRepository.findById(tmsUpdatePayload.getLeaveId()).orElse(null);
         if (request == null){
             throw new NotFoundException("leave request not found");
         }
-        request.setStatus(true);
+        request.setStatus(tmsUpdatePayload.getStatus());
         leaveRequestRepository.save(request);
         return LeaveRequestMapper.toDTO(request);
     }

@@ -1,4 +1,4 @@
-package travel_management_system.Controllers.RestApis;
+package travel_management_system.Controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

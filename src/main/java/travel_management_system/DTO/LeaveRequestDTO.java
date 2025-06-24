@@ -17,6 +17,6 @@ public class LeaveRequestDTO {
     private Date departure_date;
     private Date arrival_date;
     private double leave_days;
-    private boolean status;
+    private String status;
     HashMap<String, Object> user;
 }
