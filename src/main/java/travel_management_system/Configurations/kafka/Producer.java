@@ -8,7 +8,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import travel_management_system.Configurations.kafka.dto.TMSUpdatePayload;
+import travel_management_system.Configurations.kafka.dto.UpdatePayload;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,13 +28,13 @@ public class Producer {
 
     // TMS update producer
     @Bean
-    public ProducerFactory<String, TMSUpdatePayload> producerFactory() {
+    public ProducerFactory<String, UpdatePayload> producerFactory() {
         Map<String, Object> configProps = commonConfigs();
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
     @Bean
-    public KafkaTemplate<String, TMSUpdatePayload> kafkaTemplate() {
+    public KafkaTemplate<String, UpdatePayload> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 

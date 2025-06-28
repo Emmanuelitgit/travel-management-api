@@ -9,7 +9,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import travel_management_system.Configurations.kafka.dto.TMSUpdatePayload;
+import travel_management_system.Configurations.kafka.dto.UpdatePayload;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,17 +29,17 @@ public class Consumer {
 
 // Booking update consumer config
     @Bean
-    public ConsumerFactory<String, TMSUpdatePayload> consumerFactory() {
+    public ConsumerFactory<String, UpdatePayload> consumerFactory() {
         Map<String, Object> props = commonConfigs("tms-group");
         return new DefaultKafkaConsumerFactory<>(
                 props,
                 new StringDeserializer(),
-                new JsonDeserializer<>(TMSUpdatePayload.class, false));
+                new JsonDeserializer<>(UpdatePayload.class, false));
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, TMSUpdatePayload> KafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, TMSUpdatePayload> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    public ConcurrentKafkaListenerContainerFactory<String, UpdatePayload> KafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, UpdatePayload> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }

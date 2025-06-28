@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import travel_management_system.Components.CalculateFlightAndLeaveBalanceMethods;
-import travel_management_system.Configurations.kafka.dto.TMSUpdatePayload;
+import travel_management_system.Configurations.kafka.dto.UpdatePayload;
 import travel_management_system.DTO.LeaveRequestDTO;
 import travel_management_system.Models.LeaveRequest;
 import travel_management_system.Response.ResponseHandler;
@@ -62,9 +62,9 @@ public class LeaveRequestController {
 
     // endpoint for approving leave request
     @GetMapping("/approve/{leave_request_id}")
-    public ResponseEntity<Object> approveLeaveRequest(@PathVariable Long leave_request_id, @RequestBody TMSUpdatePayload tmsUpdatePayload){
-        tmsUpdatePayload.setLeaveId(leave_request_id);
-        LeaveRequestDTO leaveRequest = leaveRequestService.approveLeaveRequest(tmsUpdatePayload);
+    public ResponseEntity<Object> approveLeaveRequest(@PathVariable Long leave_request_id, @RequestBody UpdatePayload updatePayload){
+        updatePayload.setLeaveId(leave_request_id);
+        LeaveRequestDTO leaveRequest = leaveRequestService.approveLeaveRequest(updatePayload);
         return ResponseHandler.responseBuilder("leave request approved successfully", leaveRequest, HttpStatus.OK);
     }
 }

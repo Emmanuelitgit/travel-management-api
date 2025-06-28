@@ -22,7 +22,6 @@ public class LeaveRequest {
     public double leave_days;
     @Column
     public String status;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     public User user;
