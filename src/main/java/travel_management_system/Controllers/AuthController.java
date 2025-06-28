@@ -31,6 +31,8 @@ public class AuthController {
         this.jwtAccess = jwtAccess;
     }
 
+    // an endpoint to authenticate user during login.
+    // the process also include creating a token for a user upon successful login
     @PostMapping("/authenticate")
     public ResponseEntity<Object> authenticateUser(@RequestBody User user, HttpSession session){
         log.info("In authentication method:=====================");

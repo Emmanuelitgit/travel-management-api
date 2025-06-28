@@ -37,7 +37,11 @@ public class SecurityConfiguration {
 
         return httpSecurity.authorizeHttpRequests(registry->{
             registry
+<<<<<<< Updated upstream
                     .requestMatchers("/api/authenticate").permitAll()
+=======
+//                    .requestMatchers("/api/authenticate", "/", "/api/users").permitAll()
+>>>>>>> Stashed changes
                     .anyRequest().permitAll();
         })
                 .cors(AbstractHttpConfigurer::disable)
